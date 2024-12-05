@@ -19,6 +19,7 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	private Node<E> tail;
 	private int size;
 	private int version;
+
 	
 	
 	/// private helper methods:
@@ -96,7 +97,67 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 */
 	private Node<E> merge(Node<E> t1, Node<E> t2) {
 		// TODO
-		return t1; 
+		if (t2.next == t2) {
+            return t1;
+        }
+
+        // If the first list is empty, make it point to the second list
+        if (t1.next == t1) {
+            // Point t1's dummy to t2's first real node
+            t1.next = t2.next.next;
+            // Update t1's tail to t2's tail
+            t1 = t2;
+            // Empty the second list
+            t2.next = t2;
+            return t1;
+        }
+
+        // Initialize dummy nodes and current pointers
+        Node<E> dummy1 = t1.next; // Dummy node of first list
+        Node<E> dummy2 = t2.next; // Dummy node of second list
+
+        Node<E> current1 = dummy1.next; // First real node of first list
+        Node<E> current2 = dummy2.next; // First real node of second list
+
+        Node<E> mergedDummy = dummy1; // Use the first list's dummy node for merging
+        Node<E> mergedTail = mergedDummy; // Initialize merged tail
+
+        // Merge nodes from both lists in sorted order
+        while (current1 != dummy1 && current2 != dummy2) {
+            if (comparator.compare(current1.data, current2.data) <= 0) {
+                mergedTail.next = current1;
+                current1 = current1.next;
+            } else {
+                mergedTail.next = current2;
+                current2 = current2.next;
+            }
+            mergedTail = mergedTail.next;
+        }
+
+        // Append any remaining nodes from the first list
+        while (current1 != dummy1) {
+            mergedTail.next = current1;
+            mergedTail = mergedTail.next;
+            current1 = current1.next;
+        }
+
+        // Append any remaining nodes from the second list
+        while (current2 != dummy2) {
+            mergedTail.next = current2;
+            mergedTail = mergedTail.next;
+            current2 = current2.next;
+        }
+
+        // Complete the cycle
+        mergedTail.next = mergedDummy;
+
+        // Update the tail of the merged list
+        t1 = mergedTail;
+
+        // Empty the second list by pointing its dummy to itself
+        t2.next = t2;
+
+        return t1;
 	}
 	
 	/**
@@ -164,6 +225,11 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	public SortedCollection(Comparator<E> comp) {
 		if (comp == null) throw new IllegalArgumentException("comparator cannot be null");
 		// TODO set up data structure for an empty list.
+		this.comparator = comp;
+		tail = new Node<E>(null, null); 
+		tail.next = tail;
+	    size = 0;
+	    version = 0;
 		assert wellFormed() : "invariant failed at end of constructor";
 	}
 	
@@ -188,7 +254,17 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	public boolean add(E element) {
 		assert wellFormed() : "invariant false at start of add";
 		if (element == null) throw new IllegalArgumentException("cannot add null");
-		if (false) { // TODO: When do we NOT want to add at end?
+		if(size > 0 && comparator.compare(element, tail.data) < 0) { 
+			// TODO: When do we NOT want to add at end?
+			Node<E> dummy = tail.next;
+	        Node<E> prev = dummy;
+	        Node<E> c = dummy.next;
+	        while (c != dummy && comparator.compare(c.data, element) < 0) {
+	            prev = c;
+	            c = c.next;
+	        }
+	        Node<E> newNode = new Node<E>(element, c);
+	        prev.next = newNode;
 			// TODO: insert in place
 		} else { // add at end
 			tail = tail.next = new Node<E>(element,tail.next);
