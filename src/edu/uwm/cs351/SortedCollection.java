@@ -189,8 +189,54 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 * @param l CLL identified by its tail
 	 */
 	private Node<E> quicksort(Node<E> tail) {
-		// TODO		
-		return tail;
+		// TODO	
+		 Node<E> d = tail.next;
+		    if (d.next == d || d.next.next == d) return tail;
+		    tail = partition(tail);
+		    Node<E> p = d.next;
+		    Node<E> st = null;
+		    Node<E> et = p;
+		    while (et.next != d && comparator.compare(et.next.data, p.data) == 0) et = et.next;
+		    Node<E> gh = (et.next != d) ? et.next : null;
+		    Node<E> gt = null;
+		    if (gh != null) {
+		        Node<E> c = gh;
+		        while (c.next != d) c = c.next;
+		        gt = c;
+		    }
+		    if (d.next != p) {
+		        Node<E> c = d.next;
+		        while (c.next != p) c = c.next;
+		        st = c;
+		    }
+		    Node<E> ed = new Node<>(null, null);
+		    ed.next = ed;
+		    ed.next = p;
+		    et.next = ed; 
+		    Node<E> stl = null;
+		    if (st != null) {
+		        Node<E> sd = new Node<>(null,null);
+		        sd.next = sd;
+		        sd.next = d.next; 
+		        st.next = sd;
+		        stl = quicksort(st); 
+		    }
+		    Node<E> gtl = null;
+		    if (gt != null) {
+		        Node<E> gd = new Node<>(null,null);
+		        gd.next = gd;
+		        gd.next = gh;
+		        gt.next = gd;
+		        gtl = quicksort(gt);
+		    }
+		    Node<E> rt = et;
+		    if (stl != null) rt = merge(stl, et);
+		    if (gtl != null) rt = merge(rt, gtl);
+		    Node<E> rd = rt.next;
+		    d.next = rd.next;
+		    rt.next = d;
+		    tail = rt;
+		    return tail;
 	}
 	
 	private boolean report(String message) {
@@ -263,15 +309,15 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 		if (element == null) throw new IllegalArgumentException("cannot add null");
 		if(size > 0 && comparator.compare(element, tail.data) < 0) { 
 			// TODO: When do we NOT want to add at end?
-			Node<E> dummy = tail.next;
-	        Node<E> prev = dummy;
-	        Node<E> c = dummy.next;
-	        while (c != dummy && comparator.compare(c.data, element) < 0) {
-	            prev = c;
+			Node<E> d = tail.next;
+	        Node<E> p = d;
+	        Node<E> c = d.next;
+	        while (c != d && comparator.compare(c.data, element) < 0) {
+	            p = c;
 	            c = c.next;
 	        }
-	        Node<E> newNode = new Node<E>(element, c);
-	        prev.next = newNode;
+	        Node<E> n = new Node<E>(element, c);
+	        p.next = n;
 			// TODO: insert in place
 		} else { // add at end
 			tail = tail.next = new Node<E>(element,tail.next);
