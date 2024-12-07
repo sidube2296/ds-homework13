@@ -330,46 +330,21 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 * TODO
 	 */
 	
-	@Override
+	@Override //efficiency
 	public boolean addAll(Collection<? extends E> c) {
 	    assert wellFormed() : "invariant false at start of addAll";
-
-	    if (c.isEmpty()) {
-	        return false; // Nothing to add
-	    }
-
-	    // Optimization for single-element collections:
+	    if (c.isEmpty()) return false; 
 	    if (c.size() == 1) {
-	        // Just add this single element directly using add()
-	        E element = c.iterator().next();
-	        add(element);
+	        add(c.iterator().next());
 	        return true;
 	    }
-
-	    // For multiple elements, proceed with the bulk method:
-	    Node<E> newTail = toCLL(null, c);
-	    int added = c.size();
-
-	    // If we have a non-empty new list, quicksort it
-	    Node<E> newDummy = newTail.next;
-	    if (newDummy != newTail) {
-	        // There is at least one element
-	        newTail = quicksort(newTail);
-	    }
-
-	    Node<E> dummy = tail.next;
-	    if (dummy == tail) {
-	        // Current list is empty, adopt the new list
-	        tail = newTail;
-	    } else {
-	        // Merge the two sorted lists
-	        tail = merge(tail, newTail);
-	    }
-
-	    size += added;
+	    Node<E> nt = toCLL(null, c);
+	    if (nt.next != nt) nt = quicksort(nt);
+	    if (tail.next == tail) tail = nt;
+	    else tail = merge(tail, nt);
+	    size += c.size();
 	    version++;
 	    assert wellFormed() : "invariant false at end of addAll";
-
 	    return true;
 	}
 
