@@ -183,6 +183,7 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	    return tail;
 	}
 	
+	
 	/**
 	 * Destructively sort a CLL using quicksort, and return it.
 	 * The pivot chose should always be the first element.
@@ -190,53 +191,49 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 */
 	private Node<E> quicksort(Node<E> tail) {
 		// TODO	
-		 Node<E> d = tail.next;
-		    if (d.next == d || d.next.next == d) return tail;
-		    tail = partition(tail);
-		    Node<E> p = d.next;
-		    Node<E> st = null;
-		    Node<E> et = p;
-		    while (et.next != d && comparator.compare(et.next.data, p.data) == 0) et = et.next;
-		    Node<E> gh = (et.next != d) ? et.next : null;
-		    Node<E> gt = null;
-		    if (gh != null) {
-		        Node<E> c = gh;
-		        while (c.next != d) c = c.next;
-		        gt = c;
-		    }
-		    if (d.next != p) {
-		        Node<E> c = d.next;
-		        while (c.next != p) c = c.next;
-		        st = c;
-		    }
-		    Node<E> ed = new Node<>(null, null);
-		    ed.next = ed;
-		    ed.next = p;
-		    et.next = ed; 
-		    Node<E> stl = null;
-		    if (st != null) {
-		        Node<E> sd = new Node<>(null,null);
-		        sd.next = sd;
-		        sd.next = d.next; 
-		        st.next = sd;
-		        stl = quicksort(st); 
-		    }
-		    Node<E> gtl = null;
-		    if (gt != null) {
-		        Node<E> gd = new Node<>(null,null);
-		        gd.next = gd;
-		        gd.next = gh;
-		        gt.next = gd;
-		        gtl = quicksort(gt);
-		    }
-		    Node<E> rt = et;
-		    if (stl != null) rt = merge(stl, et);
-		    if (gtl != null) rt = merge(rt, gtl);
-		    Node<E> rd = rt.next;
-		    d.next = rd.next;
-		    rt.next = d;
-		    tail = rt;
-		    return tail;
+		Node<E> d = tail.next,sh = null, st = null, gh = null, gt = null, eh = d.next, et = d.next, c = d.next.next;
+	    if (d.next == d || d.next.next == d) return tail;
+	    d.next.next = d;
+	    for (;c != d ;) {
+	        Node<E> next = c.next;
+	        c.next = null;
+	        if (comparator.compare(c.data, d.next.data) < 0) {
+	            if (sh == null) sh = st = c;
+	            else st.next = st = c;
+	        } else if (comparator.compare(c.data, d.next.data) == 0) et.next = et = c;
+	          else {
+	            if (gh == null) gh = gt = c;
+	            else gt.next = gt = c;
+	        }
+	        c = next;
+	    }
+	    if (sh != null) {
+	        Node<E> sd = new Node<>(null,null);
+	        sd.next = sd;
+	        sd.next = sh;
+	        st.next = sd;
+	        Node<E> stl = quicksort(st);
+	        d.next = stl.next.next;
+	        stl.next = d;
+	        tail = stl; 
+	    } else {
+	        d.next = eh;
+	        tail = d; 
+	    }
+	    tail.next = eh;
+	    tail = et;
+	    tail.next = d;
+	    if (gh != null) {
+	        Node<E> gd = new Node<>(null,null);
+	        gd.next = gd;
+	        gd.next = gh;
+	        gt.next = gd;
+	        Node<E> gtl = quicksort(gt);
+	        tail.next = gtl.next.next;
+	        gtl.next = d;
+	        tail = gtl;
+	    }
+	    return tail;
 	}
 	
 	private boolean report(String message) {
@@ -332,6 +329,50 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 * Write addAll when ready to pass efficiency tests.
 	 * TODO
 	 */
+	
+	@Override
+	public boolean addAll(Collection<? extends E> c) {
+	    assert wellFormed() : "invariant false at start of addAll";
+
+	    if (c.isEmpty()) {
+	        return false; // Nothing to add
+	    }
+
+	    // Optimization for single-element collections:
+	    if (c.size() == 1) {
+	        // Just add this single element directly using add()
+	        E element = c.iterator().next();
+	        add(element);
+	        return true;
+	    }
+
+	    // For multiple elements, proceed with the bulk method:
+	    Node<E> newTail = toCLL(null, c);
+	    int added = c.size();
+
+	    // If we have a non-empty new list, quicksort it
+	    Node<E> newDummy = newTail.next;
+	    if (newDummy != newTail) {
+	        // There is at least one element
+	        newTail = quicksort(newTail);
+	    }
+
+	    Node<E> dummy = tail.next;
+	    if (dummy == tail) {
+	        // Current list is empty, adopt the new list
+	        tail = newTail;
+	    } else {
+	        // Merge the two sorted lists
+	        tail = merge(tail, newTail);
+	    }
+
+	    size += added;
+	    version++;
+	    assert wellFormed() : "invariant false at end of addAll";
+
+	    return true;
+	}
+
 	
 	@Override // required
 	public Iterator<E> iterator() {
