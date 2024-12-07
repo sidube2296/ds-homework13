@@ -97,67 +97,36 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 */
 	private Node<E> merge(Node<E> t1, Node<E> t2) {
 		// TODO
-		if (t2.next == t2) {
-            return t1;
-        }
-
-        // If the first list is empty, make it point to the second list
-        if (t1.next == t1) {
-            // Point t1's dummy to t2's first real node
-            t1.next = t2.next.next;
-            // Update t1's tail to t2's tail
-            t1 = t2;
-            // Empty the second list
-            t2.next = t2;
-            return t1;
-        }
-
-        // Initialize dummy nodes and current pointers
-        Node<E> dummy1 = t1.next; // Dummy node of first list
-        Node<E> dummy2 = t2.next; // Dummy node of second list
-
-        Node<E> current1 = dummy1.next; // First real node of first list
-        Node<E> current2 = dummy2.next; // First real node of second list
-
-        Node<E> mergedDummy = dummy1; // Use the first list's dummy node for merging
-        Node<E> mergedTail = mergedDummy; // Initialize merged tail
-
-        // Merge nodes from both lists in sorted order
-        while (current1 != dummy1 && current2 != dummy2) {
-            if (comparator.compare(current1.data, current2.data) <= 0) {
-                mergedTail.next = current1;
-                current1 = current1.next;
-            } else {
-                mergedTail.next = current2;
-                current2 = current2.next;
-            }
-            mergedTail = mergedTail.next;
-        }
-
-        // Append any remaining nodes from the first list
-        while (current1 != dummy1) {
-            mergedTail.next = current1;
-            mergedTail = mergedTail.next;
-            current1 = current1.next;
-        }
-
-        // Append any remaining nodes from the second list
-        while (current2 != dummy2) {
-            mergedTail.next = current2;
-            mergedTail = mergedTail.next;
-            current2 = current2.next;
-        }
-
-        // Complete the cycle
-        mergedTail.next = mergedDummy;
-
-        // Update the tail of the merged list
-        t1 = mergedTail;
-
-        // Empty the second list by pointing its dummy to itself
-        t2.next = t2;
-
-        return t1;
+	    Node<E> d1 = t1.next;
+	    Node<E> d2 = t2.next;
+	    if (d2.next == d2) return t1;
+	    if (d1.next == d1) {
+	        d1.next = d2.next;
+	        Node<E> ln;
+	        for (ln = d2.next; ln.next != d2; ln = ln.next);
+	        ln.next = d1;
+	        t1 = ln;
+	        d2.next = d2;
+	        return t1;
+	    }
+	    Node<E> l = d1;
+	    Node<E> p1 = d1.next;
+	    Node<E> p2 = d2.next;
+	    for (; p1 != d1 || p2 != d2; ) {
+	        if (p1 != d1 && (p2 == d2 || comparator.compare(p1.data, p2.data) <= 0)) {
+	            l.next = p1;
+	            l = p1;
+	            p1 = p1.next;
+	        } else {
+	            l.next = p2;
+	            l = p2;
+	            p2 = p2.next;
+	        }
+	    }
+	    l.next = d1;
+	    d2.next = d2;
+	    t1 = l;
+	    return t1;
 	}
 	
 	/**
