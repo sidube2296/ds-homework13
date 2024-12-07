@@ -142,7 +142,45 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 */
 	private Node<E> partition(Node<E> tail) {
 		// TODO
-		return tail;
+	    Node<E> d = tail.next;
+	    Node<E> p = d.next; 
+	    Node<E> c = p.next;
+	    p.next = d;
+	    java.util.ArrayList<Node<E>> nodes = new java.util.ArrayList<>();
+	    while (c != d) {
+	        Node<E> next = c.next;
+	        c.next = null;
+	        nodes.add(c);
+	        c = next;
+	    }
+	    Node<E> sh = null, st = null, gh = null, gt = null;
+	    Node<E> eh = p, et = p;
+	    for (Node<E> n : nodes) {
+	        int cmp = comparator.compare(n.data, p.data);
+	        if (cmp < 0) {
+	            if (sh == null) sh = st = n;
+	            else st.next = st = n;
+	        } else if (cmp == 0) et.next = et = n;
+	          else {
+	            if (gh == null) gh = gt = n;
+	            else gt.next = gt = n;
+	        }
+	    }	    
+	    Node<E> start;
+	    if (sh != null) {
+	        st.next = eh;
+	        start = sh;
+	    } else start = eh;
+	    if (gh != null) {
+	        et.next = gh;
+	        gt.next = d;
+	    } else et.next = d;
+	    d.next = start;
+	    if (gt != null) tail = gt;
+	    else if (et != p) tail = et;
+	    else if (st != null) tail = p;
+	    else tail = p;
+	    return tail;
 	}
 	
 	/**
@@ -151,7 +189,7 @@ public class SortedCollection<E> extends AbstractCollection<E> {
 	 * @param l CLL identified by its tail
 	 */
 	private Node<E> quicksort(Node<E> tail) {
-		// TODO
+		// TODO		
 		return tail;
 	}
 	
